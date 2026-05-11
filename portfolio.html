@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Portfolio - PortfolioWatcher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <style>
+    body { background: #181e28; color: #fff; font-family: 'Inter', Arial, sans-serif; margin: 0; min-height: 100vh; }
+    .container { max-width: 1100px; margin: 40px auto; padding: 20px; }
+    .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .title { font-size: 2rem; font-weight: bold; margin-bottom: 10px; }
+    .subtext { color: #a9adc1; margin-bottom: 30px; }
+    .section { background: #232a38; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .section-title { font-size: 1.3rem; font-weight: 600; color: #fff; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 12px; border-bottom: 1px solid #2d3545; text-align: left; }
+    th { color: #8fa3c8; font-weight: 500; }
+    .positive { color: #10b981; }
+    .negative { color: #ef4444; }
+    .back-btn { background: #2495eb; color: white; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+    .back-btn:hover { background: #1d7ec8; transform: translateY(-1px); }
+    .news-btn { background: #10b981; color: white; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+    .news-btn:hover { background: #059669; transform: translateY(-1px); }
+    .add-stock-btn { background: #6366f1; color: white; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+    .add-stock-btn:hover { background: #4f46e5; transform: translateY(-1px); }
+    .refresh-btn { background: #8b5cf6; color: white; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+    .refresh-btn:hover { background: #7c3aed; transform: translateY(-1px); }
+    .notification { position: fixed; top: 20px; right: 20px; background: #10b981; padding: 12px 18px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; animation: slideIn 0.3s ease; }
+    .notification.error { background: #ef4444; }
+    .notification.info { background: #3b82f6; }
+    @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; font-size: 20px; }
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+    .loading-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .broker-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .broker-angelone { background: #ef4444; color: #fff; }
+    .broker-zerodha { background: #2495eb; color: #fff; }
+    .broker-upstox { background: #6366f1; color: #fff; }
+    .broker-manual { background: #10b981; color: #fff; }
+    .action-icon { color: #ef4444; cursor: pointer; font-size: 18px; transition: all 0.2s; }
+    .action-icon:hover { transform: scale(1.2); }
+    .empty-message { text-align: center; padding: 40px 20px; color: #8d99b7; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #1f2633; padding: 16px; border-radius: 8px; border-left: 4px solid #2495eb; }
+    .stat-label { color: #8fa3c8; font-size: 0.9rem; margin-bottom: 4px; }
+    .stat-value { font-size: 1.5rem; font-weight: bold; }
+
+    @media (max-width: 640px) {
+      .header-actions { flex-direction: column; align-items: stretch; }
+      .btn-group { flex-direction: column; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-actions">
+      <button class="back-btn" onclick="window.location.href='home.html'">
+        <span class="material-symbols-outlined">arrow_back</span>
+        <span>Back to Home</span>
+      </button>
+      
+      <div class="btn-group">
+        <button class="add-stock-btn" onclick="window.location.href='stocksupload.html'">
+          <span class="material-symbols-outlined">add</span>
+          <span>Add Stocks</span>
+        </button>
+        <button class="refresh-btn" onclick="refreshAll()">
+          <span class="material-symbols-outlined">refresh</span>
+          <span>Refresh</span>
+        </button>
+        <button class="news-btn" onclick="window.location.href='urls.html'">
+          <span class="material-symbols-outlined">newspaper</span>
+          <span>Monitor News</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="title">Your Complete Portfolio</div>
+    <div class="subtext">Broker holdings + Manually tracked stocks</div>
+
+    <!-- Portfolio Stats -->
+    <div class="stats-grid" id="statsGrid" style="display:none;">
+      <div class="stat-card">
+        <div class="stat-label">Total Holdings</div>
+        <div class="stat-value" id="totalCount">0</div>
+      </div>
+      <div class="stat-card" style="border-left-color: #10b981;">
+        <div class="stat-label">From Brokers</div>
+        <div class="stat-value" id="brokerCount">0</div>
+      </div>
+      <div class="stat-card" style="border-left-color: #6366f1;">
+        <div class="stat-label">Manual Stocks</div>
+        <div class="stat-value" id="manualCount">0</div>
+      </div>
+    </div>
+
+    <div id="statusBox" class="section">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="loading-spinner"></div>
+        <span>Loading your portfolio...</span>
+      </div>
+    </div>
+
+    <!-- Broker Holdings Section -->
+    <div id="brokerSection" class="section" style="display:none;">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="material-symbols-outlined" style="vertical-align: middle;">account_balance</span>
+          Broker Holdings (<span id="brokerHoldingsCount">0</span>)
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Broker</th>
+            <th>Qty</th>
+            <th>Avg Price</th>
+            <th>LTP</th>
+            <th>P&L</th>
+          </tr>
+        </thead>
+        <tbody id="brokerTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Manual Stocks Section -->
+    <div id="manualSection" class="section" style="display:none;">
+      <div class="section-header">
+        <div class="section-title">
+          <span class="material-symbols-outlined" style="vertical-align: middle;">edit_note</span>
+          Manually Tracked Stocks (<span id="manualStocksCount">0</span>)
+        </div>
+        <button class="add-stock-btn" onclick="window.location.href='stocksupload.html'" style="font-size: 13px; padding: 8px 12px;">
+          <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+          <span>Add More</span>
+        </button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Exchange</th>
+            <th>Price</th>
+            <th>Change</th>
+            <th>Change %</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="manualTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-message" style="display:none;">
+      <span class="material-symbols-outlined" style="font-size: 4rem; opacity: 0.5;">inventory_2</span>
+      <h3 style="margin: 16px 0 8px 0;">Your portfolio is empty</h3>
+      <p style="margin-bottom: 20px;">Get started by connecting a broker or adding stocks manually</p>
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button class="back-btn" onclick="window.location.href='home.html'">Connect Broker</button>
+        <button class="add-stock-btn" onclick="window.location.href='stocksupload.html'">Add Stocks Manually</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:3000";
+    let brokerHoldings = [];
+    let manualStocks = [];
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      await checkSession();
+      await loadCompletePortfolio();
+    });
+
+    async function checkSession() {
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+      if (!isLoggedIn) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/api/check-session`, { 
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (!data.success) {
+          localStorage.removeItem('isLoggedIn');
+          window.location.href = "login.html";
+        }
+      } catch (err) {
+        console.error('Session check error:', err);
+      }
+    }
+
+    async function loadCompletePortfolio() {
+      const statusBox = document.getElementById("statusBox");
+      statusBox.style.display = "block";
+
+      try {
+        // Load broker holdings
+        await loadBrokerHoldings();
+        
+        // Load manual stocks
+        await loadManualStocks();
+
+        // Display everything
+        displayCompletePortfolio();
+
+      } catch (err) {
+        console.error('Portfolio load error:', err);
+        statusBox.innerHTML = `
+          <div style="color: #ef4444;">
+            <p>Error loading portfolio: ${err.message}</p>
+            <button class="refresh-btn" onclick="refreshAll()" style="margin-top: 15px;">
+              <span class="material-symbols-outlined">refresh</span>
+              <span>Retry</span>
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    async function loadBrokerHoldings() {
+      try {
+        const res = await fetch(`${API_URL}/api/get-connected-brokers`, { 
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await res.json();
+
+        if (!data.success || !data.brokers || data.brokers.length === 0) {
+          brokerHoldings = [];
+          return;
+        }
+
+        let allHoldings = [];
+        for (const broker of data.brokers) {
+          const holdings = await fetchHoldings(broker);
+          allHoldings = allHoldings.concat(holdings);
+        }
+
+        brokerHoldings = allHoldings;
+      } catch (err) {
+        console.error('Broker holdings error:', err);
+        brokerHoldings = [];
+      }
+    }
+
+    async function fetchHoldings(broker) {
+      try {
+        const res = await fetch(`${API_URL}/api/${broker}/holdings`, { 
+          credentials: "include",
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await res.json();
+        if (!data.success) return [];
+
+        return (data.holdings || []).map(h => ({
+          symbol: h.symbol || h.tradingsymbol || 'UNKNOWN',
+          quantity: parseFloat(h.quantity || 0),
+          average_price: parseFloat(h.average_price || h.averageprice || h.avg_price || 0),
+          ltp: parseFloat(h.ltp || h.last_price || h.lastprice || 0),
+          broker: broker,
+          isSampleData: h.isSampleData || false
+        }));
+      } catch (err) {
+        console.error(`${broker} error:`, err);
+        return [];
+      }
+    }
+
+    async function loadManualStocks() {
+      try {
+        const response = await fetch('api/get-stocks.php', {
+          credentials: "include"
+        });
+        
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          manualStocks = [];
+          return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.stocks) {
+          manualStocks = data.stocks.map(stock => ({
+            symbol: stock.symbol,
+            name: stock.name,
+            exchange: stock.exchange || 'UNKNOWN',
+            price: parseFloat(stock.price) || 0,
+            previousClose: parseFloat(stock.previous_close) || 0,
+            change: parseFloat(stock.change) || 0,
+            changePercent: parseFloat(stock.change_percent) || 0
+          }));
+        } else {
+          manualStocks = [];
+        }
+      } catch (error) {
+        console.error('Manual stocks load error:', error);
+        manualStocks = [];
+      }
+    }
+
+    function displayCompletePortfolio() {
+      const statusBox = document.getElementById("statusBox");
+      const brokerSection = document.getElementById("brokerSection");
+      const manualSection = document.getElementById("manualSection");
+      const emptyState = document.getElementById("emptyState");
+      const statsGrid = document.getElementById("statsGrid");
+
+      const totalCount = brokerHoldings.length + manualStocks.length;
+
+      if (totalCount === 0) {
+        statusBox.style.display = "none";
+        brokerSection.style.display = "none";
+        manualSection.style.display = "none";
+        emptyState.style.display = "block";
+        statsGrid.style.display = "none";
+        return;
+      }
+
+      statusBox.style.display = "none";
+      emptyState.style.display = "none";
+      statsGrid.style.display = "grid";
+
+      // Update stats
+      document.getElementById("totalCount").textContent = totalCount;
+      document.getElementById("brokerCount").textContent = brokerHoldings.length;
+      document.getElementById("manualCount").textContent = manualStocks.length;
+
+      // Display broker holdings
+      if (brokerHoldings.length > 0) {
+        brokerSection.style.display = "block";
+        document.getElementById("brokerHoldingsCount").textContent = brokerHoldings.length;
+        displayBrokerHoldings();
+      } else {
+        brokerSection.style.display = "none";
+      }
+
+      // Display manual stocks
+      if (manualStocks.length > 0) {
+        manualSection.style.display = "block";
+        document.getElementById("manualStocksCount").textContent = manualStocks.length;
+        displayManualStocks();
+      } else {
+        manualSection.style.display = "none";
+      }
+
+      notify(`Portfolio loaded: ${totalCount} total holdings`, 'info');
+    }
+
+    function displayBrokerHoldings() {
+      const table = document.getElementById("brokerTable");
+      table.innerHTML = "";
+
+      brokerHoldings.forEach(h => {
+        const pnl = (h.ltp - h.average_price) * h.quantity;
+        const pnlClass = pnl >= 0 ? 'positive' : 'negative';
+        const brokerClass = `broker-${h.broker}`;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${h.symbol}</strong></td>
+          <td><span class="broker-tag ${brokerClass}">${h.broker.toUpperCase()}</span></td>
+          <td>${h.quantity}</td>
+          <td>₹${h.average_price.toFixed(2)}</td>
+          <td>₹${h.ltp.toFixed(2)}</td>
+          <td class="${pnlClass}">₹${pnl.toFixed(2)}</td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    function displayManualStocks() {
+      const table = document.getElementById("manualTable");
+      table.innerHTML = "";
+
+      manualStocks.forEach((stock, index) => {
+        const changeClass = stock.change >= 0 ? 'positive' : 'negative';
+        const changeSign = stock.change >= 0 ? '+' : '';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${stock.symbol}</strong><br><small style="color: #8fa3c8;">${stock.name}</small></td>
+          <td><span class="broker-tag broker-manual">${stock.exchange}</span></td>
+          <td>₹${stock.price.toFixed(2)}</td>
+          <td class="${changeClass}">${changeSign}₹${Math.abs(stock.change).toFixed(2)}</td>
+          <td class="${changeClass}">${changeSign}${stock.changePercent.toFixed(2)}%</td>
+          <td>
+            <span class="material-symbols-outlined action-icon" onclick="removeManualStock('${stock.symbol}')" title="Remove">
+              delete
+            </span>
+          </td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    async function removeManualStock(symbol) {
+      if (!confirm(`Remove ${symbol} from portfolio?`)) return;
+
+      try {
+        const formData = new URLSearchParams();
+        formData.append('symbol', symbol);
+        
+        const response = await fetch('api/delete-stock.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData,
+          credentials: "include"
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          notify(`${symbol} removed from portfolio`, 'success');
+          await loadCompletePortfolio();
+        } else {
+          notify(data.message || 'Failed to remove stock', 'error');
+        }
+      } catch (error) {
+        console.error('Error removing stock:', error);
+        notify('Failed to remove stock', 'error');
+      }
+    }
+
+    async function refreshAll() {
+      notify('Refreshing portfolio...', 'info');
+      await loadCompletePortfolio();
+    }
+
+    function notify(msg, type = "success") {
+      const n = document.createElement("div");
+      n.className = `notification ${type}`;
+      n.textContent = msg;
+      document.body.appendChild(n);
+      setTimeout(() => n.remove(), 4000);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sign Up - Portfolio Watcher</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: "#1173d4",
+          "background-light": "#f6f7f8",
+          "background-dark": "#101922",
+        },
+        fontFamily: {
+          display: ["Inter"],
+        },
+        borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+      },
+    },
+  };
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  }
+</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="flex min-h-screen items-center justify-center p-4">
+<div class="w-full max-w-md space-y-8">
+<div class="text-center">
+<span class="material-symbols-outlined text-primary text-6xl">account_balance_wallet</span>
+<h1 class="mt-4 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Create your account</h1>
+<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Join Portfolio Watcher and start managing your assets.</p>
+</div>
+
+<form class="space-y-6 rounded-lg bg-white dark:bg-background-dark/50 p-8 shadow-sm" id="signupForm">
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="fullname">Full Name</label>
+<div class="mt-1">
+<input autocomplete="name" class="block w-full rounded border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700/50 dark:text-white dark:placeholder-gray-500 dark:focus:border-primary dark:focus:ring-primary sm:text-sm" id="fullname" name="fullname" placeholder="John Doe" required="" type="text"/>
+</div>
+</div>
+
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="email">Email address</label>
+<div class="mt-1">
+<input autocomplete="email" class="block w-full rounded border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700/50 dark:text-white dark:placeholder-gray-500 dark:focus:border-primary dark:focus:ring-primary sm:text-sm" id="email" name="email" placeholder="you@example.com" required="" type="email"/>
+</div>
+</div>
+
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="password">Password</label>
+<div class="mt-1">
+<input autocomplete="new-password" class="block w-full rounded border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700/50 dark:text-white dark:placeholder-gray-500 dark:focus:border-primary dark:focus:ring-primary sm:text-sm" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="confirm-password">Confirm Password</label>
+<div class="mt-1">
+<input autocomplete="new-password" class="block w-full rounded border-gray-300 bg-gray-50 text-gray-900 placeholder-gray-400 focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700/50 dark:text-white dark:placeholder-gray-500 dark:focus:border-primary dark:focus:ring-primary sm:text-sm" id="confirm-password" name="confirm-password" placeholder="••••••••" required="" type="password"/>
+</div>
+</div>
+
+<div class="flex items-center">
+<input class="h-4 w-4 rounded border-gray-300 bg-gray-50 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-700/50 dark:focus:ring-primary dark:ring-offset-background-dark dark:checked:bg-primary" id="terms" name="terms" required="" type="checkbox"/>
+<label class="ml-2 block text-sm text-gray-900 dark:text-gray-300" for="terms">
+I agree to the <a class="font-medium text-primary hover:text-primary/90" href="#" onclick="event.preventDefault();">Terms and Conditions</a>
+</label>
+</div>
+
+<div>
+<button class="flex w-full justify-center rounded bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark" type="submit">
+Sign Up
+</button>
+</div>
+</form>
+
+<p class="text-center text-sm text-gray-500 dark:text-gray-400">
+Already have an account? <a class="font-medium text-primary hover:text-primary/90 cursor-pointer" href="login.html" id="loginLink">Back to Login</a>
+</p>
+</div>
+</div>
+
+<script>
+// Add click handler to login link with debugging
+document.addEventListener('DOMContentLoaded', function() {
+    const loginLink = document.getElementById('loginLink');
+    if (loginLink) {
+        loginLink.addEventListener('click', function(e) {
+            console.log('Login link clicked!');
+            console.log('Link href:', this.getAttribute('href'));
+            // Let the default behavior happen (navigation)
+        });
+    }
+});
+</script>
+<script src="js/signup.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("Signup page loaded");
+});
+</script>
+
+</body>
+</html>

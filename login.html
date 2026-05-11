@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Login - Portfolio Watcher</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+    <script>
+        const API_URL = 'http://localhost:3000';
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1173d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: { "display": ["Inter"] }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+    <div class="flex min-h-screen">
+        <div class="flex flex-1 flex-col justify-center py-12 px-4 sm:px-6 lg:flex-none lg:px-20 xl:px-24">
+            <div class="mx-auto w-full max-w-sm lg:w-96">
+                <div>
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="w-8 h-8 text-primary">
+                            <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                                <g clip-path="url(#clip0_6_319)">
+                                    <path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
+                                </g>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Portfolio Watcher</h2>
+                    </div>
+                    <h2 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Sign in to your account</h2>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        Or <a class="font-medium text-primary hover:text-primary/80" href="signup.html">create a new account</a>
+                    </p>
+                </div>
+
+                <div class="mt-8">
+                    <form class="space-y-6" id="loginForm">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="email">Email address</label>
+                            <div class="mt-1">
+                                <input autocomplete="email" class="block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm py-3 px-4" id="email" name="email" required type="email"/>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="password">Password</label>
+                            <div class="mt-1">
+                                <input autocomplete="current-password" class="block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm py-3 px-4" id="password" name="password" required type="password"/>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <input class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" id="remember-me" name="remember-me" type="checkbox"/>
+                                <label class="ml-2 block text-sm text-gray-900 dark:text-gray-300" for="remember-me">Remember me</label>
+                            </div>
+                            <div class="text-sm">
+                                <a class="font-medium text-primary hover:text-primary/80" href="forgotpass.html">Forgot password?</a>
+                            </div>
+                        </div>
+
+                        <div>
+                            <button class="flex w-full justify-center rounded-lg bg-primary py-3 px-4 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" type="submit">Sign in</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="relative hidden w-0 flex-1 lg:block">
+            <div class="absolute inset-0 h-full w-full bg-gradient-to-tr from-primary/30 to-background-dark"></div>
+        </div>
+    </div>
+
+    <script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const submitBtn = this.querySelector('button[type="submit"]');
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing in...';
+    
+    try {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include', // Important for session cookies
+            body: JSON.stringify({ email, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Store user info in localStorage
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('isLoggedIn', 'true');
+            
+            // Show success message
+            showMessage('success', 'Login successful! Redirecting...');
+            
+            // Redirect after short delay
+            setTimeout(() => {
+                window.location.href = 'home.html';
+            }, 500);
+        } else {
+            showMessage('error', data.message || 'Login failed');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Sign in';
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        showMessage('error', 'Network error. Please check your connection.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign in';
+    }
+});
+
+function showMessage(type, message) {
+    const existingMsg = document.querySelector('.alert-message');
+    if (existingMsg) existingMsg.remove();
+
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'alert-message';
+    
+    const bgColor = type === 'success' ? '#10b981' : '#ef4444';
+    const icon = type === 'success' ? 'âœ“' : 'âœ•';
+    
+    msgDiv.style.cssText = `
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        border-radius: 0.5rem;
+        font-size: 14px;
+        background-color: ${bgColor};
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        animation: slideDown 0.3s ease-out;
+    `;
+    
+    msgDiv.innerHTML = `<span style="font-size: 18px;">${icon}</span><span>${message}</span>`;
+
+    const form = document.getElementById('loginForm');
+    form.insertBefore(msgDiv, form.firstChild);
+
+    setTimeout(() => {
+        msgDiv.style.animation = 'slideUp 0.3s ease-out';
+        setTimeout(() => msgDiv.remove(), 300);
+    }, 5000);
+}
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUp {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-10px); }
+    }
+`;
+document.head.appendChild(style);
+    </script>
+</body>
+</html>

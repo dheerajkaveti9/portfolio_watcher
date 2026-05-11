@@ -1,0 +1,56 @@
+-- Database Schema for Password Reset System
+
+-- Users table
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_email (email)
+);
+
+-- Password reset codes table
+CREATE TABLE password_reset_codes (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    reset_code VARCHAR(6) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    verified BOOLEAN DEFAULT FALSE,
+    attempts INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_email (email),
+    INDEX idx_reset_code (reset_code),
+    INDEX idx_expires_at (expires_at)
+);
+
+-- Password reset history (for audit trail)
+CREATE TABLE password_reset_history (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    reset_successful BOOLEAN DEFAULT FALSE,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at)
+);
+
+-- Stored procedure to clean up expired codes
+DELIMITER //
+CREATE PROCEDURE cleanup_expired_reset_codes()
+BEGIN
+    DELETE FROM password_reset_codes 
+    WHERE expires_at < NOW();
+END //
+DELIMITER ;
+
+-- Event to run cleanup every hour
+CREATE EVENT cleanup_expired_codes
+ON SCHEDULE EVERY 1 HOUR
+DO CALL cleanup_expired_reset_codes();

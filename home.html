@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PortfolioWatcher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { background: #181e28; color: #fff; font-family: 'Inter', Arial, sans-serif; margin: 0; min-height: 100vh; }
+    .container { max-width: 900px; margin: 40px auto 0 auto; padding: 32px; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; background: #1f2633; padding: 16px 32px; border-bottom: 1px solid #2b3242; }
+    .logo { font-weight: 600; font-size: 1.3rem; color: #fff; }
+    .logout-btn { background: #ff4747; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background 0.3s; }
+    .logout-btn:hover { background: #ff5e5e; }
+    .welcome { font-size: 2.2rem; font-weight: bold; margin-bottom: 8px; }
+    .subtext { color: #a9adc1; margin-bottom: 30px; }
+    .section-title { font-size: 1.1rem; font-weight: 500; margin-bottom: 24px; }
+    .apps { display: flex; flex-wrap: wrap; gap: 28px; margin-bottom: 34px; }
+    .app-card { background: #232a38; border-radius: 16px; min-width: 170px; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s; cursor: pointer; position: relative; padding: 16px; }
+    .app-card:hover { box-shadow: 0 2px 16px #1b223355; transform: translateY(-2px); }
+    .app-card.connected { border: 2px solid #10b981; background: #232a38; }
+    .app-card.connected::after { content: '✓ Connected'; position: absolute; top: 8px; right: 8px; background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .disconnect-btn { display: none; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.3s; z-index: 10; width: 85%; }
+    .disconnect-btn:hover { background: #dc2626; }
+    .app-card.connected .disconnect-btn { display: block; }
+    .app-logo img { width: 64px; height: 64px; margin-bottom: 12px; object-fit: contain; border-radius: 10px; background: #f9f5ef; padding: 6px; }
+    .app-name { font-size: 1.1rem; font-weight: 500; margin-bottom: 2px; }
+    .app-desc { font-size: 0.9rem; color: #b6bacf; }
+    .divider { text-align: center; color: #5a637c; margin: 18px 0; font-weight: 500; }
+    .manual-box { background: #232a38; border-radius: 14px; border: 1px dashed #3d4357; color: #d3d6e1; font-weight: 500; padding: 32px 0; text-align: center; cursor: pointer; margin-bottom: 28px; font-size: 1.07rem; transition: all 0.3s; }
+    .manual-box:hover { background: #2a3240; border-color: #2495eb; box-shadow: 0 4px 16px rgba(36,149,235,0.1); }
+    .footer { display: flex; justify-content: center; gap: 14px; color: #7f8499; font-size: 0.97rem; margin-top: 28px; }
+    .view-portfolio-btn { background: #2495eb; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: background 0.3s; }
+    .view-portfolio-btn:hover { background: #1d7bc7; }
+    .notification { position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; animation: slideIn 0.3s ease; }
+    .notification.error { background: #ef4444; }
+    @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="logo">PortfolioWatcher</div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="container">
+    <div class="welcome">Welcome back!</div>
+    <div class="subtext">Let's track your portfolio. How would you like to start?</div>
+
+    <div class="section-title">Connect your trading app</div>
+    <div class="apps">
+      <div class="app-card" id="kite-card">
+        <div onclick="connectBroker('zerodha')" style="display: flex; flex-direction: column; align-items: center; flex: 1; justify-content: center; width: 100%;">
+          <div class="app-logo"><img src="logos/zerodhalogo.png" /></div>
+          <div class="app-name">Kite</div>
+          <div class="app-desc">by Zerodha</div>
+        </div>
+        <button class="disconnect-btn" onclick="event.stopPropagation(); disconnectBroker('zerodha')">Disconnect</button>
+      </div>
+
+      <div class="app-card" id="angelone-card">
+        <div onclick="connectBroker('angelone')" style="display: flex; flex-direction: column; align-items: center; flex: 1; justify-content: center; width: 100%;">
+          <div class="app-logo"><img src="logos/angelonelogo.png" /></div>
+          <div class="app-name">AngelOne</div>
+          <div class="app-desc">by Angel One</div>
+        </div>
+        <button class="disconnect-btn" onclick="event.stopPropagation(); disconnectBroker('angelone')">Disconnect</button>
+      </div>
+
+      <div class="app-card" id="upstox-card">
+        <div onclick="connectBroker('upstox')" style="display: flex; flex-direction: column; align-items: center; flex: 1; justify-content: center; width: 100%;">
+          <div class="app-logo"><img src="logos/upstoxlogo.png" /></div>
+          <div class="app-name">Upstox</div>
+          <div class="app-desc">by RKSV</div>
+        </div>
+        <button class="disconnect-btn" onclick="event.stopPropagation(); disconnectBroker('upstox')">Disconnect</button>
+      </div>
+    </div>
+
+    <div class="divider">OR</div>
+
+    <div class="manual-box" onclick="window.location.href='stocksupload.html'">
+      📝 Select Stocks Manually <br />
+      <span style="color:#8892b0; font-size:0.93rem;"> Add individual stocks, ETFs, and mutual funds. </span>
+    </div>
+
+    <div class="footer">
+      <button onclick="window.location.href='portfolio.html'" class="view-portfolio-btn">View Portfolio</button>
+      <div style="cursor: pointer;">Help</div>
+      <div style="cursor: pointer;">Settings</div>
+    </div>
+  </div>
+
+  <script>
+  const API_URL = "http://localhost:3000";
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    await checkSession();
+    handleOAuthCallback();
+    await checkConnectedBrokers();
+  });
+
+  async function checkSession() {
+    try {
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+      if (!isLoggedIn) return (window.location.href = "login.html");
+
+      if (user.full_name) {
+        document.querySelector(".welcome").textContent = `Welcome back, ${user.full_name}!`;
+      }
+
+      const res = await fetch(`${API_URL}/api/check-session`, { credentials: "include" });
+      const data = await res.json();
+
+      if (!data.success) {
+        localStorage.clear();
+        window.location.href = "login.html";
+      }
+    } catch (err) {
+      console.error("Session error", err);
+    }
+  }
+
+  async function logout() {
+    try {
+      await fetch(`${API_URL}/api/logout`, { method: "POST", credentials: "include" });
+    } catch (e) {}
+
+    localStorage.clear();
+    window.location.href = "login.html";
+  }
+
+  async function connectBroker(broker) {
+    try {
+      if (broker === "angelone") {
+        const res = await fetch(`${API_URL}/api/angelone/login`, {
+          method: "POST",
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          notify("AngelOne connected successfully!");
+          markConnected("angelone");
+        } else {
+          notify("AngelOne connection failed: " + data.message, "error");
+        }
+        return;
+      }
+
+      const res = await fetch(`${API_URL}/api/${broker}/login-url`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (!data.success || !data.loginUrl) {
+        notify(`Failed to connect to ${broker}`, "error");
+        return;
+      }
+
+      window.location.href = data.loginUrl;
+    } catch (err) {
+      console.error("Broker connect error:", err);
+      notify("Error connecting to broker", "error");
+    }
+  }
+
+  async function disconnectBroker(broker) {
+    if (!confirm(`Are you sure you want to disconnect ${broker}?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/${broker}/disconnect`, {
+        method: "POST",
+        credentials: "include",
+      });
+      
+      const data = await res.json();
+
+      if (data.success) {
+        notify(`${broker} disconnected successfully!`);
+        unmarkConnected(broker);
+      } else {
+        notify(`Failed to disconnect ${broker}: ${data.message}`, "error");
+      }
+    } catch (err) {
+      console.error("Disconnect error:", err);
+      notify("Error disconnecting broker", "error");
+    }
+  }
+
+  function handleOAuthCallback() {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.has("broker") && params.get("status") === "connected") {
+      const broker = params.get("broker");
+      notify(`${broker} connected successfully!`);
+      markConnected(broker);
+      clearQuery();
+    }
+
+    if (params.has("error")) {
+      notify(`Connection failed: ${params.get("error")}`, "error");
+      clearQuery();
+    }
+  }
+
+  function clearQuery() {
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  async function checkConnectedBrokers() {
+    try {
+      const res = await fetch(`${API_URL}/api/get-connected-brokers`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.brokers)) {
+        data.brokers.forEach((b) => markConnected(b));
+      }
+    } catch (err) {
+      console.error("Connected brokers error", err);
+    }
+  }
+
+  function markConnected(broker) {
+    const map = {
+      zerodha: "kite-card",
+      angelone: "angelone-card",
+      upstox: "upstox-card",
+    };
+
+    const card = document.getElementById(map[broker]);
+    if (card) card.classList.add("connected");
+  }
+
+  function unmarkConnected(broker) {
+    const map = {
+      zerodha: "kite-card",
+      angelone: "angelone-card",
+      upstox: "upstox-card",
+    };
+
+    const card = document.getElementById(map[broker]);
+    if (card) card.classList.remove("connected");
+  }
+
+  function notify(msg, type = "success") {
+    const box = document.createElement("div");
+    box.className = `notification ${type}`;
+    box.textContent = msg;
+    document.body.appendChild(box);
+
+    setTimeout(() => box.remove(), 4000);
+  }
+  </script>
+</body>
+</html>

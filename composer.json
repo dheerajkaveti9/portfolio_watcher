@@ -1,0 +1,12 @@
+{
+    "name": "portfolio-watcher/email-service",
+    "description": "Portfolio Watcher Email Service with PHPMailer",
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    }
+}
+
+

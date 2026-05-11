@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Forgot Password - Portfolio Watcher</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        const API_URL = "http://localhost:3000";
+    </script>
+</head>
+
+<body class="bg-gray-900 text-white font-display">
+    <div class="flex min-h-screen items-center justify-center px-4">
+        <div class="bg-gray-800 p-8 rounded-2xl shadow-xl w-full max-w-md">
+            <h2 class="text-3xl font-bold mb-2">Forgot Password?</h2>
+            <p class="text-gray-400 mb-6">
+                Enter your email address and we'll send you a reset code.
+            </p>
+
+            <form id="resetForm" class="space-y-5">
+                <div>
+                    <label>Email Address</label>
+                    <input id="email" type="email" required
+                           class="w-full mt-1 px-4 py-3 bg-gray-700 rounded-lg border border-gray-600
+                           focus:ring-primary focus:border-primary" />
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-primary py-3 rounded-lg font-semibold text-white hover:bg-primary/90">
+                    Send Reset Code
+                </button>
+
+                <div class="text-center mt-3">
+                    <a href="login.html" class="text-primary hover:underline">Back to Login</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+document.getElementById("resetForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const btn = this.querySelector("button");
+
+    btn.disabled = true;
+    btn.textContent = "Sending...";
+
+    const res = await fetch(`${API_URL}/api/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        // No need to store code — only store email for display
+        sessionStorage.setItem("resetEmail", email);
+        window.location.href = "resetpassword.html";
+    } else {
+        alert(data.message);
+        btn.disabled = false;
+        btn.textContent = "Send Reset Code";
+    }
+});
+</script>
+
+</body>
+</html>

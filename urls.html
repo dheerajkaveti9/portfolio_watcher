@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Portfolio News Monitor</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1173d4",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: { display: ["Inter", "sans-serif"] }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;}50%{opacity:.6;} }
+        .animate-pulse {
+            animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+
+<body class="font-display bg-background-dark">
+    <div class="relative min-h-screen flex flex-col">
+
+        <!-- HEADER -->
+        <header class="border-b border-white/10 flex justify-between items-center px-6 py-4">
+            <div class="flex items-center gap-3 text-white">
+                <span class="text-primary material-symbols-outlined text-3xl">monitoring</span>
+                <h1 class="text-xl font-bold">Portfolio News Monitor</h1>
+            </div>
+            <nav class="flex items-center gap-6 text-white/70">
+                <button onclick="window.location.href='home.html'" class="hover:text-white">Home</button>
+                <button onclick="window.location.href='portfolio.html'" class="hover:text-white">Portfolio</button>
+            </nav>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="max-w-[960px] mx-auto w-full px-6 mt-10 flex flex-col gap-8">
+
+            <div>
+                <h2 class="text-white text-4xl font-black">Monitor Your Portfolio in News</h2>
+                <p class="text-[#9dabb9] mt-2">
+                    Automatically search for mentions of your portfolio stocks in news sources.
+                </p>
+            </div>
+
+            <!-- ADD URL -->
+            <div class="bg-white/5 p-6 rounded-xl">
+                <h3 class="text-white text-lg font-semibold mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined">link</span>
+                    News Sources
+                </h3>
+                
+                <div class="flex gap-3 mb-4">
+                    <input id="urlInput"
+                           type="url"
+                           placeholder="https://economictimes.indiatimes.com/markets/stocks"
+                           class="flex-1 h-12 px-4 text-white bg-white/5 rounded-lg outline-none placeholder-[#9dabb9]" />
+                    <button onclick="addURL()"
+                        class="bg-primary text-white font-bold rounded-lg px-6 h-12 hover:bg-primary/90">
+                        Add URL
+                    </button>
+                </div>
+
+                <!-- Quick Add Popular Sites -->
+                <div class="bg-white/5 p-4 rounded-lg mb-4">
+                    <p class="text-white text-sm font-semibold mb-3">Quick Add: Popular Sites</p>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="quickAddURL('https://economictimes.indiatimes.com/markets/stocks','Economic Times')"
+                            class="px-3 py-1.5 bg-white/10 rounded text-white hover:bg-white/20 text-xs">
+                            Economic Times
+                        </button>
+                        <button onclick="quickAddURL('https://www.moneycontrol.com/news/business/markets/','MoneyControl')"
+                            class="px-3 py-1.5 bg-white/10 rounded text-white hover:bg-white/20 text-xs">
+                            MoneyControl
+                        </button>
+                        <button onclick="quickAddURL('https://www.livemint.com/market','Mint Markets')"
+                            class="px-3 py-1.5 bg-white/10 rounded text-white hover:bg-white/20 text-xs">
+                            Mint
+                        </button>
+                        <button onclick="quickAddURL('https://medium.com/tag/stocks','Medium - Stocks')"
+                            class="px-3 py-1.5 bg-white/10 rounded text-white hover:bg-white/20 text-xs">
+                            Medium
+                        </button>
+                    </div>
+                </div>
+
+                <div id="urlsList" class="space-y-2">
+                    <!-- URLs will appear here -->
+                </div>
+            </div>
+
+            <!-- SEARCH BUTTON -->
+            <div class="flex flex-col sm:flex-row gap-3 items-start">
+                <button id="searchBtn"
+                    onclick="searchMentions()"
+                    class="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold">
+                    <span class="material-symbols-outlined">manage_search</span>
+                    Search for Portfolio Mentions
+                </button>
+                
+                <div class="flex items-center gap-2 bg-white/5 px-4 py-3 rounded-lg">
+                    <span class="material-symbols-outlined text-green-500 animate-pulse">schedule</span>
+                    <span class="text-white text-sm">Auto-searches every 5 mins</span>
+                    <span class="text-[#9dabb9] text-xs" id="nextSearchTime"></span>
+                </div>
+            </div>
+
+            <!-- SEARCH RESULTS -->
+            <div id="searchResults" class="hidden">
+                <div class="bg-white/5 rounded-xl p-6">
+                    <h3 class="text-white text-xl font-bold mb-4">Search Results</h3>
+                    <div id="resultsContent"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- NOTIFICATION -->
+    <div id="toast" class="hidden fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50"></div>
+
+    <script>
+const API_URL = "http://localhost:3000";
+
+// ============================================
+// AUTO-SEARCH FUNCTIONALITY
+// ============================================
+
+let autoSearchInterval = null;
+let nextSearchTimestamp = null;
+
+function startAutoSearch() {
+    scheduleNextSearch();
+    
+    autoSearchInterval = setInterval(() => {
+        console.log('🔄 Auto-search triggered');
+        searchMentions(true);
+        scheduleNextSearch();
+    }, 5 * 60 * 1000);
+}
+
+function scheduleNextSearch() {
+    nextSearchTimestamp = Date.now() + (5 * 60 * 1000);
+    updateNextSearchDisplay();
+}
+
+function updateNextSearchDisplay() {
+    const timeElement = document.getElementById('nextSearchTime');
+    if (!timeElement) return;
+    
+    const updateTimer = () => {
+        if (!nextSearchTimestamp) return;
+        
+        const remaining = Math.max(0, nextSearchTimestamp - Date.now());
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        
+        timeElement.textContent = `(Next in ${minutes}:${seconds.toString().padStart(2, '0')})`;
+        
+        if (remaining > 0) {
+            setTimeout(updateTimer, 1000);
+        }
+    };
+    
+    updateTimer();
+}
+
+// ============================================
+// DATA STORAGE
+// ============================================
+
+let portfolioStocks = [];
+let urls = JSON.parse(localStorage.getItem('newsUrls') || '[]');
+
+// ============================================
+// NOTIFICATION SYSTEM
+// ============================================
+
+function showNotification(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+
+    toast.className =
+        "fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 " +
+        (type === "success" ? "bg-green-600" : type === "error" ? "bg-red-600" : "bg-blue-600");
+
+    toast.classList.remove("hidden");
+    setTimeout(() => toast.classList.add("hidden"), 4000);
+
+    if (type === "success" && Notification.permission === "granted") {
+        new Notification("Stock Mention Found!", {
+            body: message,
+            icon: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png"
+        });
+    }
+}
+
+// Request notification permission on page load
+if (Notification.permission === "default") {
+    Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+            console.log("✅ Notification permission granted");
+            // Show a test notification
+            new Notification("Portfolio Monitor Active", {
+                body: "You'll receive notifications when stocks are mentioned!",
+                icon: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png"
+            });
+        } else {
+            console.log("⚠️ Notification permission denied");
+        }
+    });
+} else if (Notification.permission === "granted") {
+    console.log("✅ Notifications already enabled");
+} else {
+    console.log("⚠️ Notifications blocked by user");
+}
+
+// ============================================
+// PORTFOLIO LOADING
+// ============================================
+
+async function loadPortfolioStocks() {
+    console.log('📄 Loading portfolio stocks...');
+
+    try {
+        const brokerRes = await fetch(`${API_URL}/api/get-connected-brokers`, { 
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const brokerData = await brokerRes.json();
+        let allStocks = [];
+
+        if (brokerData.success && brokerData.brokers) {
+            for (const broker of brokerData.brokers) {
+                const holdings = await fetchBrokerHoldings(broker);
+                allStocks = allStocks.concat(holdings.map(h => h.symbol));
+            }
+        }
+
+        try {
+            const manualRes = await fetch('api/get-stocks.php', { credentials: 'include' });
+            const manualData = await manualRes.json();
+            
+            if (manualData.success && manualData.stocks) {
+                allStocks = allStocks.concat(manualData.stocks.map(s => s.symbol));
+            }
+        } catch (err) {
+            console.log('No manual stocks:', err);
+        }
+
+        portfolioStocks = [...new Set(allStocks)].filter(Boolean).map(s => s.toUpperCase());
+        console.log(`✅ Loaded ${portfolioStocks.length} stocks:`, portfolioStocks);
+
+    } catch (err) {
+        console.error('❌ Portfolio load error:', err);
+        portfolioStocks = [];
+    }
+}
+
+async function fetchBrokerHoldings(broker) {
+    try {
+        const res = await fetch(`${API_URL}/api/${broker}/holdings`, { 
+            credentials: "include",
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await res.json();
+        if (!data.success) return [];
+
+        return (data.holdings || []).map(h => ({
+            symbol: (h.symbol || h.tradingsymbol || 'UNKNOWN').toUpperCase()
+        }));
+    } catch (err) {
+        console.error(`${broker} error:`, err);
+        return [];
+    }
+}
+
+// ============================================
+// URL MANAGEMENT
+// ============================================
+
+function addURL() {
+    const input = document.getElementById("urlInput");
+    let url = input.value.trim();
+
+    if (!url) return showNotification("Enter a URL", "error");
+
+    try {
+        new URL(url);
+    } catch {
+        return showNotification("Invalid URL format", "error");
+    }
+
+    if (urls.some(u => u.url === url)) return showNotification("URL already added", "error");
+
+    const urlObj = new URL(url);
+    const name = urlObj.hostname.replace('www.', '');
+
+    urls.push({ url, name });
+    localStorage.setItem('newsUrls', JSON.stringify(urls));
+    input.value = "";
+    renderURLs();
+    showNotification(`${name} added!`);
+}
+
+function quickAddURL(url, name) {
+    if (urls.some(u => u.url === url)) return showNotification("URL already added", "error");
+
+    urls.push({ url, name });
+    localStorage.setItem('newsUrls', JSON.stringify(urls));
+    renderURLs();
+    showNotification(`${name} added!`);
+}
+
+function removeURL(url) {
+    urls = urls.filter(u => u.url !== url);
+    localStorage.setItem('newsUrls', JSON.stringify(urls));
+    renderURLs();
+    showNotification("URL removed");
+}
+
+function renderURLs() {
+    const container = document.getElementById("urlsList");
+    
+    if (urls.length === 0) {
+        container.innerHTML = '<p class="text-[#9dabb9]">No URLs added yet. Add some above!</p>';
+        return;
+    }
+
+    container.innerHTML = urls.map(urlObj => `
+        <div class="flex items-center justify-between bg-white/5 rounded-lg px-4 py-3">
+            <div class="flex-1 overflow-hidden">
+                <p class="text-white font-medium">${urlObj.name}</p>
+                <p class="text-[#9dabb9] text-xs truncate">${urlObj.url}</p>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+                <button onclick="window.open('${urlObj.url}')"
+                    class="text-white/70 hover:text-white">
+                    <span class="material-symbols-outlined text-xl">open_in_new</span>
+                </button>
+                <button onclick="removeURL('${urlObj.url}')"
+                    class="text-red-500/70 hover:text-red-500">
+                    <span class="material-symbols-outlined text-xl">delete</span>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ============================================
+// SEARCH FUNCTIONALITY
+// ============================================
+
+function isMediumURL(url) {
+    return url.includes('medium.com');
+}
+
+async function searchMentions(isAutoSearch = false) {
+    if (portfolioStocks.length === 0) {
+        if (!isAutoSearch) {
+            showNotification("No stocks in portfolio. Add stocks first.", "error");
+            setTimeout(() => window.location.href = 'portfolio.html', 2000);
+        }
+        return;
+    }
+
+    if (urls.length === 0) {
+        if (!isAutoSearch) {
+            return showNotification("Add at least one URL to monitor", "error");
+        }
+        return;
+    }
+
+    const btn = document.getElementById("searchBtn");
+    const resultsDiv = document.getElementById("searchResults");
+    const resultsContent = document.getElementById("resultsContent");
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="material-symbols-outlined pulse">hourglass_empty</span> ${isAutoSearch ? 'Auto-Searching...' : 'Searching...'}`;
+
+    resultsDiv.classList.remove("hidden");
+    resultsContent.innerHTML = '<div class="text-[#9dabb9] text-center py-4 pulse">Searching URLs...</div>';
+
+    const stockMap = {
+        'STEELXIND': ['STEEL', 'STEELXIND'],
+        'TRIDENT-EQ': ['TRIDENT'],
+        'TCS': ['TATA CONSULTANCY', 'TCS'],
+        'INFY': ['INFOSYS'],
+        'RELIANCE': ['RELIANCE INDUSTRIES', 'RIL', 'RELIANCE'],
+        'HDFC': ['HDFC BANK', 'HDFC'],
+        'SBIN': ['STATE BANK OF INDIA', 'SBI', 'SBIN'],
+        'WIPRO': ['WIPRO'],
+        'ITC': ['ITC LIMITED', 'ITC'],
+        'BHARTIARTL': ['BHARTI AIRTEL', 'AIRTEL']
+    };
+
+    const results = [];
+
+    for (const urlObj of urls) {
+        try {
+            console.log(`🔎 Searching ${urlObj.name}...`);
+
+            let content = '';
+            let fetchMethod = '';
+
+            if (isMediumURL(urlObj.url)) {
+                console.log('📰 Detected Medium URL - using backend Puppeteer');
+                const proxyUrl = `${API_URL}/api/fetch-html?url=${encodeURIComponent(urlObj.url)}`;
+
+                try {
+                    console.log('  Using backend /api/fetch-html...');
+                    const response = await fetch(proxyUrl);
+
+                    if (response.ok) {
+                        content = await response.text();
+                        fetchMethod = 'Puppeteer Backend';
+                        console.log(`  ✅ Puppeteer backend worked! Got ${content.length} chars`);
+                    } else {
+                        let errorMsg = `HTTP ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorMsg = errorData.suggestion || errorData.message || errorMsg;
+                            console.log('  Backend error details:', errorData);
+                        } catch (e) {
+                            // ignore
+                        }
+                        throw new Error(errorMsg);
+                    }
+                } catch (backendErr) {
+                    console.log(`  ❌ Puppeteer backend failed: ${backendErr.message}`);
+                    throw new Error('🚫 Medium blocks automated access. Please:\n1. Open the article in your browser\n2. Copy the full article text\n3. Paste it in the "Manual Text Search" box above');
+                }
+            } else {
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(urlObj.url)}`;
+                
+                const response = await fetch(proxyUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'text/html,application/xhtml+xml' }
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                content = await response.text();
+                fetchMethod = 'AllOrigins Proxy';
+            }
+            
+            console.log(`📄 Raw content length: ${content.length} chars`);
+            
+            if (isMediumURL(urlObj.url)) {
+                console.log('📰 Using Medium-specific text extraction');
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = content;
+                
+                const selectors = [
+                    'article',
+                    '[data-selectable-paragraph]',
+                    '.postArticle-content',
+                    '.section-content',
+                    'p', 'h1', 'h2', 'h3', 'h4', 'li'
+                ];
+                
+                let extractedText = '';
+                for (const selector of selectors) {
+                    const elements = tempDiv.querySelectorAll(selector);
+                    elements.forEach(el => {
+                        extractedText += ' ' + (el.textContent || '');
+                    });
+                }
+                
+                if (extractedText.length > 100) {
+                    content = extractedText;
+                    console.log(`✅ Extracted ${content.length} chars using DOM selectors`);
+                } else {
+                    console.log('⚠️ DOM extraction failed, using aggressive cleaning');
+                }
+            }
+            
+            if (content.includes('<')) {
+                content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                content = content.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
+                content = content.replace(/<[^>]+>/g, ' ');
+                content = content.replace(/&nbsp;/g, ' ');
+                content = content.replace(/&amp;/g, '&');
+                content = content.replace(/&lt;/g, '<');
+                content = content.replace(/&gt;/g, '>');
+                content = content.replace(/\s+/g, ' ');
+            }
+            
+            content = content.toUpperCase().trim();
+
+            console.log(`📄 Cleaned content length: ${content.length} chars`);
+            console.log(`📝 Content preview (first 500 chars):`, content.substring(0, 500));
+            console.log(`🔍 Searching for stocks:`, portfolioStocks);
+
+            const stocksFound = [];
+
+            for (const stock of portfolioStocks) {
+                const patterns = stockMap[stock] || [stock];
+                
+                const cleanStock = stock.replace(/-EQ$/i, '').replace(/[^A-Z0-9]/g, '');
+                if (cleanStock !== stock && !patterns.includes(cleanStock)) {
+                    patterns.push(cleanStock);
+                }
+                
+                const hyphenated = stock.replace(/-EQ$/i, '');
+                if (hyphenated !== stock && !patterns.includes(hyphenated)) {
+                    patterns.push(hyphenated);
+                }
+                
+                console.log(`🔎 Looking for ${stock}, patterns:`, patterns);
+                
+                const found = patterns.some(pattern => {
+                    const upperPattern = pattern.toUpperCase();
+                    try {
+                        const regex = new RegExp(`\\b${upperPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+                        const isFound = regex.test(content) || content.includes(upperPattern);
+                        if (isFound) {
+                            console.log(`✅ FOUND "${upperPattern}" in content!`);
+                        }
+                        return isFound;
+                    } catch (e) {
+                        const isFound = content.includes(upperPattern);
+                        if (isFound) {
+                            console.log(`✅ FOUND "${upperPattern}" in content!`);
+                        }
+                        return isFound;
+                    }
+                });
+                
+                if (found) {
+                    stocksFound.push(stock);
+                    console.log(`✅ Match confirmed: ${stock}`);
+                }
+            }
+
+            results.push({
+                source: urlObj.name,
+                url: urlObj.url,
+                stocksFound,
+                error: null,
+                fetchMethod
+            });
+            
+            console.log(`✅ Successfully processed ${urlObj.name}, found ${stocksFound.length} stocks`);
+
+        } catch (err) {
+            console.error(`❌ Error fetching ${urlObj.name}:`, err);
+            
+            if (isMediumURL(urlObj.url) && !isAutoSearch) {
+                showNotification('Medium article detected - please use manual copy/paste', 'info');
+            }
+            
+            results.push({
+                source: urlObj.name,
+                url: urlObj.url,
+                stocksFound: [],
+                error: err.message,
+                fetchMethod: null
+            });
+        }
+    }
+
+    const totalFound = results.reduce((sum, r) => sum + r.stocksFound.length, 0);
+    const sourcesWithMentions = results.filter(r => r.stocksFound.length > 0).length;
+
+    if (totalFound === 0) {
+        resultsContent.innerHTML = `
+            <div class="text-center py-8">
+                <span class="material-symbols-outlined text-6xl text-[#9dabb9]">search_off</span>
+                <p class="text-[#9dabb9] mt-3">No stock mentions found in any source</p>
+                <p class="text-[#9dabb9] text-sm mt-2">
+                    Searched for ${portfolioStocks.join(', ')} in ${urls.length} source(s)
+                </p>
+            </div>
+        `;
+    } else {
+        resultsContent.innerHTML = `
+            <div class="mb-4 p-4 bg-green-600/20 border border-green-600 rounded-lg">
+                <p class="text-white font-semibold">
+                    🎉 Found ${totalFound} stock mention(s) in ${sourcesWithMentions} source(s)!
+                </p>
+            </div>
+
+            ${results.map(r => `
+                <div class="bg-white/5 p-4 rounded-lg mb-4 ${r.error ? 'border-l-4 border-orange-500' : ''}">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex-1">
+                            <h4 class="text-white font-semibold">${r.source}</h4>
+                            ${r.fetchMethod ? `<p class="text-[#9dabb9] text-xs mt-1">via ${r.fetchMethod}</p>` : ''}
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs ${
+                            r.error ? "bg-orange-500/70" : 
+                            r.stocksFound.length ? "bg-green-600" : "bg-gray-600"
+                        } text-white">
+                            ${r.error ? '⚠️ Failed' : `${r.stocksFound.length} found`}
+                        </span>
+                    </div>
+
+                    ${r.error ? `
+                        <div class="bg-orange-500/10 border border-orange-500/30 p-3 rounded-lg mb-3">
+                            <p class="text-orange-300 text-sm whitespace-pre-line">${r.error}</p>
+                            ${isMediumURL(r.url) ? `
+                                <div class="mt-3 pt-3 border-t border-orange-500/30">
+                                    <p class="text-white text-sm font-semibold mb-2">How to search this article:</p>
+                                    <ol class="text-[#9dabb9] text-xs space-y-1 ml-4">
+                                        <li>1. <a href="${r.url}" target="_blank" class="text-blue-400 hover:underline">Open the article</a></li>
+                                        <li>2. Copy all the article text (Ctrl+A, Ctrl+C)</li>
+                                        <li>3. Scroll up and paste it in the "Manual Text Search" box</li>
+                                        <li>4. Click "Search This Text"</li>
+                                    </ol>
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+
+                    ${r.stocksFound.length ? `
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            ${r.stocksFound.map(s => 
+                                `<span class="px-3 py-1.5 bg-primary/20 text-primary rounded-lg text-sm font-mono font-semibold">${s}</span>`
+                            ).join('')}
+                        </div>
+                        <a href="${r.url}" target="_blank" 
+                           class="text-primary hover:underline text-sm flex items-center gap-1">
+                            View Source <span class="material-symbols-outlined text-sm">open_in_new</span>
+                        </a>
+                    ` : !r.error ? `
+                        <p class="text-[#9dabb9] text-sm">No mentions found</p>
+                    ` : ''}
+                </div>
+            `).join('')}
+        `;
+
+        const mentionedStocks = [...new Set(results.flatMap(r => r.stocksFound))];
+        if (mentionedStocks.length > 0) {
+            const message = `Found mentions: ${mentionedStocks.join(', ')}`;
+            showNotification(message, "success");
+            
+            // Force browser notification
+            if (Notification.permission === "granted") {
+                console.log("🔔 Sending browser notification:", message);
+                try {
+                    const notification = new Notification("Stock Mentions Found! 📈", {
+                        body: message,
+                        icon: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png",
+                        badge: "https://cdn-icons-png.flaticon.com/512/2917/2917995.png",
+                        requireInteraction: true,
+                        tag: 'stock-mention'
+                    });
+                    notification.onclick = function() {
+                        window.focus();
+                        this.close();
+                    };
+                } catch (e) {
+                    console.error("Notification error:", e);
+                }
+            } else {
+                console.log("⚠️ Browser notifications not permitted");
+            }
+        } else if (isAutoSearch) {
+            console.log('ℹ️ Auto-search completed: No mentions found');
+        }
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined">manage_search</span> Search for Portfolio Mentions';
+}
+
+// ============================================
+// INITIALIZE
+// ============================================
+
+window.addEventListener('DOMContentLoaded', async () => {
+    await loadPortfolioStocks();
+    renderURLs();
+
+    document.getElementById("urlInput").addEventListener("keypress", e => {
+        if (e.key === "Enter") addURL();
+    });
+    
+    console.log('✅ Auto-search enabled: searching every 5 minutes');
+    startAutoSearch();
+});
+    </script>
+</body>
+</html>

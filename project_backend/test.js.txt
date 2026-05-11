@@ -1,0 +1,38 @@
+// test.js
+const axios = require('axios');
+
+const API_URL = 'http://localhost:3000/api';
+
+async function testPasswordReset() {
+    try {
+        console.log('1. Testing forgot password...');
+        const forgotResponse = await axios.post(`${API_URL}/forgot-password`, {
+            email: 'test@example.com'
+        });
+        console.log('✓ Forgot password:', forgotResponse.data);
+
+        // Get code from console/email
+        const code = '123456'; // Replace with actual code
+
+        console.log('\n2. Testing verify code...');
+        const verifyResponse = await axios.post(`${API_URL}/verify-reset-code`, {
+            email: 'test@example.com',
+            code: code
+        });
+        console.log('✓ Verify code:', verifyResponse.data);
+
+        console.log('\n3. Testing reset password...');
+        const resetResponse = await axios.post(`${API_URL}/reset-password`, {
+            email: 'test@example.com',
+            code: code,
+            newPassword: 'NewPassword123!'
+        });
+        console.log('✓ Reset password:', resetResponse.data);
+
+        console.log('\n✅ All tests passed!');
+    } catch (error) {
+        console.error('❌ Test failed:', error.response?.data || error.message);
+    }
+}
+
+testPasswordReset();
